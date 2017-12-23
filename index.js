@@ -27,6 +27,9 @@ function RFXtrx433Platform(log, config, api) {
   this.config = config;
   this.accessories = [];
 
+  this.rfxtrx = new rfxcom.RfxCom("/dev/ttyUSB0", {debug: true});
+  this.rfy = new rfxcom.Rfy(this.rfxtrx, rfxcom.rfy.RFY, {venetianBlindsMode: "US"});
+
   // this.requestServer = http.createServer(function(request, response) {
   //   if (request.url === "/add") {
   //     this.addAccessory(new Date().toISOString());
@@ -63,6 +66,8 @@ function RFXtrx433Platform(log, config, api) {
 }
 
 RFXtrx433Platform.prototype.didFinishLaunching = function() {
+  var remotes = rfy.listRemotes();
+  this.log(remotes)
   this.addAccessory("test1");
   this.addAccessory("test2");
 }
