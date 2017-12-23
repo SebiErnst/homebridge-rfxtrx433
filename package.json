@@ -16,7 +16,7 @@
   "engines": {
     "node": ">=0.12.0",
     "homebridge": ">=0.2.0"
-  },
+  }, 
   "dependencies": {
     "rfxcom": "^1.0.3"
   }
