@@ -29,8 +29,12 @@ function RFXtrx433Platform(log, config, api) {
   this.config = config;
   this.accessories = [];
 
-  this.rfxtrx = new rfxcom.RfxCom("/dev/ttyUSB0", {debug: true});
-  this.rfy = new rfxcom.Rfy(this.rfxtrx, rfxcom.rfy.RFY, {venetianBlindsMode: "US"});
+  this.rfxtrx = new rfxcom.RfxCom("/dev/ttyUSB0", {
+    debug: true
+  });
+  this.rfy = new rfxcom.Rfy(this.rfxtrx, rfxcom.rfy.RFY, {
+    venetianBlindsMode: "US"
+  });
 
   this.rfxtrx.on('disconnect', () => this.log('ERROR: RFXtrx disconnect'))
   this.rfxtrx.on('connectfailed', () => this.log('ERROR: RFXtrx connect fail'))
@@ -60,19 +64,20 @@ function RFXtrx433Platform(log, config, api) {
   // });
 
   if (api) {
-      // Save the API object as plugin needs to register new accessory via this object
-      this.api = api;
+    // Save the API object as plugin needs to register new accessory via this object
+    this.api = api;
 
-      // Listen to event "didFinishLaunching", this means homebridge already finished loading cached accessories.
-      // Platform Plugin should only register new accessory that doesn't exist in homebridge after this event.
-      // Or start discover new accessories.
-      this.api.on('didFinishLaunching', this.didFinishLaunching.bind(this));
+    // Listen to event "didFinishLaunching", this means homebridge already finished loading cached accessories.
+    // Platform Plugin should only register new accessory that doesn't exist in homebridge after this event.
+    // Or start discover new accessories.
+    this.api.on('didFinishLaunching', this.didFinishLaunching.bind(this));
   }
 }
 
 RFXtrx433Platform.prototype.didFinishLaunching = function() {
-  var remotes = this.rfy.listRemotes();
-  this.log(remotes)
+  this.rfxtrx.initialise(() => {
+    this.log('RFX init done')
+  })
   this.addAccessory("test1");
   this.addAccessory("test2");
 }
@@ -96,11 +101,11 @@ RFXtrx433Platform.prototype.configureAccessory = function(accessory) {
 
   if (accessory.getService(Service.Lightbulb)) {
     accessory.getService(Service.Lightbulb)
-    .getCharacteristic(Characteristic.On)
-    .on('set', function(value, callback) {
-      platform.log(accessory.displayName, "Light -> " + value);
-      callback();
-    });
+      .getCharacteristic(Characteristic.On)
+      .on('set', function(value, callback) {
+        platform.log(accessory.displayName, "Light -> " + value);
+        callback();
+      });
   }
 
   this.accessories.push(accessory);
@@ -121,7 +126,10 @@ RFXtrx433Platform.prototype.configurationRequestHandler = function(context, requ
     // set "type" to platform if the plugin is trying to modify platforms section
     // set "replace" to true will let homebridge replace existing config in config.json
     // "config" is the data platform trying to save
-    callback(null, "platform", true, {"platform":"RFXtrx433", "otherConfig":"SomeData"});
+    callback(null, "platform", true, {
+      "platform": "RFXtrx433",
+      "otherConfig": "SomeData"
+    });
     return;
   }
 
@@ -134,12 +142,11 @@ RFXtrx433Platform.prototype.configurationRequestHandler = function(context, requ
     "type": "Interface",
     "interface": "input",
     "title": "Add Accessory",
-    "items": [
-      {
+    "items": [{
         "id": "name",
         "title": "Name",
         "placeholder": "Fancy Light"
-      }//,
+      } //,
       // {
       //   "id": "pw",
       //   "title": "Password",
@@ -204,11 +211,11 @@ RFXtrx433Platform.prototype.addAccessory = function(accessoryName) {
 
   // Make sure you provided a name for service, otherwise it may not visible in some HomeKit apps
   newAccessory.addService(Service.Lightbulb, "Test Light")
-  .getCharacteristic(Characteristic.On)
-  .on('set', function(value, callback) {
-    platform.log(newAccessory.displayName, "Light -> " + value);
-    callback();
-  });
+    .getCharacteristic(Characteristic.On)
+    .on('set', function(value, callback) {
+      platform.log(newAccessory.displayName, "Light -> " + value);
+      callback();
+    });
 
   this.accessories.push(newAccessory);
   this.api.registerPlatformAccessories("homebridge-rfxtrx433", "RFXtrx433", [newAccessory]);
