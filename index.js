@@ -35,7 +35,7 @@ function RFXtrx433Platform(log, config, api) {
   this.rfy = new rfxcom.Rfy(this.rfxtrx, rfxcom.rfy.RFY, {
     venetianBlindsMode: "US"
   });
-  this.lighting2 = new rfxcom.Lighting2(rfxtrx, rfxcom.lighting2.HOMEEASY_EU);
+  this.lighting2 = new rfxcom.Lighting2(this.rfxtrx, rfxcom.lighting2.HOMEEASY_EU);
 
 
   this.rfxtrx.on('disconnect', () => this.log('ERROR: RFXtrx disconnect'))
