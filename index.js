@@ -223,7 +223,8 @@ RFXtrx433Platform.prototype.addAccessory = function(accessoryName) {
     .getCharacteristic(Characteristic.On)
     .on('set', function(value, callback) {
       platform.log(newAccessory.displayName, "Light -> " + value);
-      this.orno.switchOn("0x02EBE746/16");
+      platform.log(this.orno)
+      // this.orno.switchOn("0x02EBE746/16");
       callback();
     });
 
