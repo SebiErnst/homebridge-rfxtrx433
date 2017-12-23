@@ -1,6 +1,6 @@
 {
   "name": "homebridge-rfxtrx433",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Homebridge plugin for RFXtrx433: https://github.com/SebiErnst/homebridge-rfxtrx433  ",
   "license": "ISC",
   "keywords": [

@@ -14,7 +14,7 @@ module.exports = function(homebridge) {
 
   // For platform plugin to be considered as dynamic platform plugin,
   // registerPlatform(pluginName, platformName, constructor, dynamic), dynamic must be true
-  homebridge.registerPlatform("homebridge-RFXtrx433Platform", "RFXtrx433Platform", SamplePlatform, true);
+  homebridge.registerPlatform("homebridge-RFXtrx433Platform", "RFXtrx433Platform", RFXtrx433Platform, true);
 }
 
 // Platform constructor
@@ -198,7 +198,7 @@ RFXtrx433Platform.prototype.addAccessory = function(accessoryName) {
   });
 
   this.accessories.push(newAccessory);
-  this.api.registerPlatformAccessories("homebridge-samplePlatform", "SamplePlatform", [newAccessory]);
+  this.api.registerPlatformAccessories("homebridge-RFXtrx433Platform", "RFXtrx433Platform", [newAccessory]);
 }
 
 RFXtrx433Platform.prototype.updateAccessoriesReachability = function() {
