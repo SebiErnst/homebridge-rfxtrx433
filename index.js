@@ -32,6 +32,9 @@ function RFXtrx433Platform(log, config, api) {
   this.rfxtrx = new rfxcom.RfxCom("/dev/ttyUSB0", {debug: true});
   this.rfy = new rfxcom.Rfy(this.rfxtrx, rfxcom.rfy.RFY, {venetianBlindsMode: "US"});
 
+  this.rfxtrx.on('disconnect', () => this.log('ERROR: RFXtrx disconnect'))
+  this.rfxtrx.on('connectfailed', () => this.log('ERROR: RFXtrx connect fail'))
+
   // this.requestServer = http.createServer(function(request, response) {
   //   if (request.url === "/add") {
   //     this.addAccessory(new Date().toISOString());
