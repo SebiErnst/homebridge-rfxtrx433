@@ -1,5 +1,5 @@
 var http = require('http');
-const rfxcom = require('rfxcom')
+var rfxcom = require('rfxcom')
 
 var Accessory, Service, Characteristic, UUIDGen;
 
