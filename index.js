@@ -35,7 +35,7 @@ function RFXtrx433Platform(log, config, api) {
   this.rfy = new rfxcom.Rfy(this.rfxtrx, rfxcom.rfy.RFY, {
     venetianBlindsMode: "US"
   });
-  this.lighting2 = new rfxcom.Lighting2(this.rfxtrx, rfxcom.lighting2.HOMEEASY_EU);
+  this.lighting2 = new rfxcom.Lighting2(this.rfxtrx, rfxcom.lighting2.AC)
 
 
   this.rfxtrx.on('disconnect', () => this.log('ERROR: RFXtrx disconnect'))
@@ -109,11 +109,10 @@ RFXtrx433Platform.prototype.configureAccessory = function(accessory) {
     accessory.getService(Service.Lightbulb)
       .getCharacteristic(Characteristic.On)
       .on('set', function(value, callback) {
-        platform.log(accessory.displayName, "Light -> " + value);
-        this.lighting2.switchOn("0x02EBE746/1");
-        platform.log('Done')
+        platform.log(accessory.displayName, "Lightzz -> " + value);
+        this.lighting2.switchOn("0x02EBE746/16");
+        platform.log('Done');
         // lighting2.switchOff("0xF09AC8AA/1");
-
         callback();
       });
   }
