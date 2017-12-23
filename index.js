@@ -35,6 +35,8 @@ function RFXtrx433Platform(log, config, api) {
   this.rfy = new rfxcom.Rfy(this.rfxtrx, rfxcom.rfy.RFY, {
     venetianBlindsMode: "US"
   });
+  this.lighting2 = new rfxcom.Lighting2(rfxtrx, rfxcom.lighting2.HOMEEASY_EU);
+
 
   this.rfxtrx.on('disconnect', () => this.log('ERROR: RFXtrx disconnect'))
   this.rfxtrx.on('connectfailed', () => this.log('ERROR: RFXtrx connect fail'))
@@ -83,7 +85,7 @@ RFXtrx433Platform.prototype.didFinishLaunching = function() {
     this.rfy.listRemotes()
   })
   this.addAccessory("test1");
-  this.addAccessory("test2");
+  // this.addAccessory("test2");
 }
 
 // Function invoked when homebridge tries to restore cached accessory.
@@ -108,6 +110,9 @@ RFXtrx433Platform.prototype.configureAccessory = function(accessory) {
       .getCharacteristic(Characteristic.On)
       .on('set', function(value, callback) {
         platform.log(accessory.displayName, "Light -> " + value);
+        this.lighting2.switchOn("0x02EBE746/16");
+        // lighting2.switchOff("0xF09AC8AA/1");
+
         callback();
       });
   }
@@ -214,7 +219,7 @@ RFXtrx433Platform.prototype.addAccessory = function(accessoryName) {
   // newAccessory.context.something = "Something"
 
   // Make sure you provided a name for service, otherwise it may not visible in some HomeKit apps
-  newAccessory.addService(Service.Lightbulb, "Test Light")
+  newAccessory.addService(Service.Lightbulb, "Wiatrołap")
     .getCharacteristic(Characteristic.On)
     .on('set', function(value, callback) {
       platform.log(newAccessory.displayName, "Light -> " + value);
