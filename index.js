@@ -77,6 +77,7 @@ function RFXtrx433Platform(log, config, api) {
 RFXtrx433Platform.prototype.didFinishLaunching = function() {
   this.rfxtrx.initialise(() => {
     this.log('RFX init done')
+    this.rfy.listRemotes(remotes => {this.log(remotes)})
   })
   this.addAccessory("test1");
   this.addAccessory("test2");
