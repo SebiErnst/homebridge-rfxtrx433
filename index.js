@@ -110,7 +110,8 @@ RFXtrx433Platform.prototype.configureAccessory = function(accessory) {
       .getCharacteristic(Characteristic.On)
       .on('set', function(value, callback) {
         platform.log(accessory.displayName, "Light -> " + value);
-        this.lighting2.switchOn("0x02EBE746/16");
+        this.lighting2.switchOn("0x02EBE746/1");
+        platform.log('Done')
         // lighting2.switchOff("0xF09AC8AA/1");
 
         callback();
