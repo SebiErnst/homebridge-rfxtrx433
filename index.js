@@ -14,7 +14,7 @@ module.exports = function(homebridge) {
 
   // For platform plugin to be considered as dynamic platform plugin,
   // registerPlatform(pluginName, platformName, constructor, dynamic), dynamic must be true
-  homebridge.registerPlatform("homebridge-RFXtrx433", "RFXtrx433", RFXtrx433Platform, true);
+  homebridge.registerPlatform("homebridge-rfxtrx433", "RFXtrx433", RFXtrx433Platform, true);
 }
 
 // Platform constructor
@@ -27,29 +27,29 @@ function RFXtrx433Platform(log, config, api) {
   this.config = config;
   this.accessories = [];
 
-  this.requestServer = http.createServer(function(request, response) {
-    if (request.url === "/add") {
-      this.addAccessory(new Date().toISOString());
-      response.writeHead(204);
-      response.end();
-    }
-
-    if (request.url == "/reachability") {
-      this.updateAccessoriesReachability();
-      response.writeHead(204);
-      response.end();
-    }
-
-    if (request.url == "/remove") {
-      this.removeAccessory();
-      response.writeHead(204);
-      response.end();
-    }
-  }.bind(this));
-
-  this.requestServer.listen(18081, function() {
-    platform.log("Server Listening...");
-  });
+  // this.requestServer = http.createServer(function(request, response) {
+  //   if (request.url === "/add") {
+  //     this.addAccessory(new Date().toISOString());
+  //     response.writeHead(204);
+  //     response.end();
+  //   }
+  //
+  //   if (request.url == "/reachability") {
+  //     this.updateAccessoriesReachability();
+  //     response.writeHead(204);
+  //     response.end();
+  //   }
+  //
+  //   if (request.url == "/remove") {
+  //     this.removeAccessory();
+  //     response.writeHead(204);
+  //     response.end();
+  //   }
+  // }.bind(this));
+  //
+  // this.requestServer.listen(18081, function() {
+  //   platform.log("Server Listening...");
+  // });
 
   if (api) {
       // Save the API object as plugin needs to register new accessory via this object
@@ -58,10 +58,13 @@ function RFXtrx433Platform(log, config, api) {
       // Listen to event "didFinishLaunching", this means homebridge already finished loading cached accessories.
       // Platform Plugin should only register new accessory that doesn't exist in homebridge after this event.
       // Or start discover new accessories.
-      this.api.on('didFinishLaunching', function() {
-        platform.log("DidFinishLaunching");
-      }.bind(this));
+      this.api.on('didFinishLaunching', this.didFinishLaunching.bind(this));
   }
+}
+
+RFXtrx433Platform.prototype.didFinishLaunching = function() {
+  this.addAccessory("test1");
+  this.addAccessory("test2");
 }
 
 // Function invoked when homebridge tries to restore cached accessory.
@@ -198,7 +201,7 @@ RFXtrx433Platform.prototype.addAccessory = function(accessoryName) {
   });
 
   this.accessories.push(newAccessory);
-  this.api.registerPlatformAccessories("homebridge-RFXtrx433", "RFXtrx433", [newAccessory]);
+  this.api.registerPlatformAccessories("homebridge-rfxtrx433", "RFXtrx433", [newAccessory]);
 }
 
 RFXtrx433Platform.prototype.updateAccessoriesReachability = function() {
@@ -212,7 +215,7 @@ RFXtrx433Platform.prototype.updateAccessoriesReachability = function() {
 // Sample function to show how developer can remove accessory dynamically from outside event
 RFXtrx433Platform.prototype.removeAccessory = function() {
   this.log("Remove Accessory");
-  this.api.unregisterPlatformAccessories("homebridge-RFXtrx433Platform", "RFXtrx433", this.accessories);
+  this.api.unregisterPlatformAccessories("homebridge-rfxtrx433", "RFXtrx433", this.accessories);
 
   this.accessories = [];
 }
