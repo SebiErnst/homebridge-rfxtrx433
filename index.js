@@ -14,14 +14,14 @@ module.exports = function(homebridge) {
 
   // For platform plugin to be considered as dynamic platform plugin,
   // registerPlatform(pluginName, platformName, constructor, dynamic), dynamic must be true
-  homebridge.registerPlatform("homebridge-RFXtrx433Platform", "RFXtrx433Platform", RFXtrx433Platform, true);
+  homebridge.registerPlatform("homebridge-RFXtrx433", "RFXtrx433", RFXtrx433Platform, true);
 }
 
 // Platform constructor
 // config may be null
 // api may be null if launched from old homebridge version
 function RFXtrx433Platform(log, config, api) {
-  log("RFXtrx433Platform Init");
+  log("RFXtrx433 Init");
   var platform = this;
   this.log = log;
   this.config = config;
@@ -198,7 +198,7 @@ RFXtrx433Platform.prototype.addAccessory = function(accessoryName) {
   });
 
   this.accessories.push(newAccessory);
-  this.api.registerPlatformAccessories("homebridge-RFXtrx433Platform", "RFXtrx433Platform", [newAccessory]);
+  this.api.registerPlatformAccessories("homebridge-RFXtrx433", "RFXtrx433", [newAccessory]);
 }
 
 RFXtrx433Platform.prototype.updateAccessoriesReachability = function() {
@@ -212,7 +212,7 @@ RFXtrx433Platform.prototype.updateAccessoriesReachability = function() {
 // Sample function to show how developer can remove accessory dynamically from outside event
 RFXtrx433Platform.prototype.removeAccessory = function() {
   this.log("Remove Accessory");
-  this.api.unregisterPlatformAccessories("homebridge-RFXtrx433Platform", "RFXtrx433Platform", this.accessories);
+  this.api.unregisterPlatformAccessories("homebridge-RFXtrx433Platform", "RFXtrx433", this.accessories);
 
   this.accessories = [];
 }
