@@ -23,18 +23,18 @@ module.exports = function(homebridge) {
 // config may be null
 // api may be null if launched from old homebridge version
 function RFXtrx433Platform(log, config, api) {
-  log("RFXtrx433 Init");
-  var platform = this;
-  this.log = log;
-  this.config = config;
-  this.accessories = [];
+  // log("RFXtrx433 Init")
+  var platform = this
+  this.log = log
+  this.config = config
+  this.accessories = []
+  this.tty = this.config.tty || '/dev/ttyUSB0'
+  this.debug = this.config.debug || false
 
-  this.rfxtrx = new rfxcom.RfxCom("/dev/ttyUSB0", {
-    debug: true
+  this.rfxtrx = new rfxcom.RfxCom(this.tty, {
+    debug: this.debug
   });
-  this.rfy = new rfxcom.Rfy(this.rfxtrx, rfxcom.rfy.RFY, {
-    venetianBlindsMode: "US"
-  });
+  this.rfy = new rfxcom.Rfy(this.rfxtrx, eval(rfxcom.rfy.RFY), {});
   this.orno = new rfxcom.Lighting2(this.rfxtrx, rfxcom.lighting2.AC, {});
 
 
@@ -79,10 +79,18 @@ function RFXtrx433Platform(log, config, api) {
 RFXtrx433Platform.prototype.didFinishLaunching = function() {
   this.rfxtrx.initialise(() => {
     this.log('RFX init done')
-    this.rfxtrx.once('rfyremoteslist', remotes => {this.log(remotes)})
+    this.rfxtrx.once('rfyremoteslist', remotes => {
+      this.log(remotes)
+    })
     // this.rfxtrx.on('receive', bytes => {this.log("e: receive"); this.log(bytes);})
-    this.rfxtrx.on('lighting2', data => {this.log("e: lighting2"); this.log(data);})
-    this.rfy.listRemotes()
+    this.rfxtrx.on('lighting2', data => {
+      this.log("e: lighting2");
+      this.log(data);
+    })
+    // this.rfy.listRemotes()
+    // this.rfy.up("0x020101/1", function(err, res, sequenceNumber) {
+    //   if (!err) console.log('complete');
+    // });
   })
   this.addAccessory("test1");
   // this.addAccessory("test2");
@@ -104,6 +112,7 @@ RFXtrx433Platform.prototype.configureAccessory = function(accessory) {
     platform.log(accessory.displayName, "Identify!!!");
     callback();
   });
+
 
   if (accessory.getService(Service.Lightbulb)) {
     accessory.getService(Service.Lightbulb)
@@ -215,18 +224,132 @@ RFXtrx433Platform.prototype.addAccessory = function(accessoryName) {
     platform.log(newAccessory.displayName, "Identify!!!");
     callback();
   });
-  // Plugin can save context on accessory to help restore accessory in configureAccessory()
-  // newAccessory.context.something = "Something"
 
-  // Make sure you provided a name for service, otherwise it may not visible in some HomeKit apps
-  newAccessory.addService(Service.Lightbulb, "Wiatrołap")
-    .getCharacteristic(Characteristic.On)
+
+  service = new Service.WindowCovering("Test 1");
+
+  service.setCharacteristic(Characteristic.PositionState, 2)
+
+
+  newAccessory.context = {
+    upDownTime: 17000,
+    commandQueue: [],
+    lastTargetValue: -1,
+    intermediateTarget: 0
+  }
+
+  // service.getCharacteristic(Characteristic.PositionState)
+  //   .on('get', function(callback) {
+  //     platform.log('====== get state')
+  //     // platform.log(this)
+  //     callback(null, 2)
+  //   });
+  //
+  //   service.getCharacteristic(Characteristic.CurrentPosition)
+  //     .on('get', function(callback) {
+  //       platform.log('====== get current')
+  //       // platform.log(this)
+  //       callback(null, service.getCharacteristic(Characteristic.CurrentPosition).value)
+  //     });
+  //
+  //   service.getCharacteristic(Characteristic.TargetPosition)
+  //     .on('get', function(callback) {
+  //       platform.log('====== get target')
+  //       // platform.log(this)
+  //       callback(null, service.getCharacteristic(Characteristic.TargetPosition).value)
+  //     });
+
+
+
+  newAccessory.addService(service);
+
+  processTimeouts = function() {
+    platform.log('Processing timeouts...')
+    platform.log(newAccessory.context.commandQueue)
+    // platform.log('ps: '+service.getCharacteristic(Characteristic.PositionState).value)
+    // setTimeout(() => {service.getCharacteristic(Characteristic.PositionState).setValue(2)}, 300)
+    // Service.getCharacteristic(Characteristic.CurrentPosition)
+    service.setCharacteristic(Characteristic.CurrentPosition, newAccessory.context.intermediateTarget)
+    platform.log("Intermetiate position reached: " + newAccessory.context.intermediateTarget)
+    if (newAccessory.context.commandQueue.length > 0) {
+      newDelay = newAccessory.context.commandQueue[0].delay;
+      newDir = newAccessory.context.commandQueue[0].dir;
+      newAccessory.context.intermediateTarget = newAccessory.context.commandQueue[0].value
+      platform.log("Setting new intermediate target " + newAccessory.context.intermediateTarget)
+      if (newDir == "up") {
+        service.getCharacteristic(Characteristic.PositionState).setValue(1)
+        platform.log("PositionState set to 1")
+        platform.rfy.up("0x020101/1", function(err, res, sequenceNumber) {
+          if (!err) console.log('complete');
+        });
+
+      } else if (newDir == "down") {
+        service.getCharacteristic(Characteristic.PositionState).setValue(0)
+        platform.log("PositionState set to 0")
+        platform.rfy.down("0x020101/1", function(err, res, sequenceNumber) {
+          if (!err) console.log('complete');
+        });
+
+      }
+      newAccessory.context.commandQueue.shift()
+      platform.log('Transitioning for ' + newDelay + ' ms')
+      setTimeout(processTimeouts, newDelay)
+    } else {
+      service.getCharacteristic(Characteristic.PositionState).setValue(2)
+      if ((newAccessory.context.intermediateTarget > 0) && (newAccessory.context.intermediateTarget < 100)) {
+        platform.log('Sending STOP command')
+        platform.rfy.stop("0x020101/1", function(err, res, sequenceNumber) {
+          if (!err) console.log('complete');
+        });
+      }
+    }
+    platform.log('end ps: ' + service.getCharacteristic(Characteristic.PositionState).value)
+  }
+
+  newAccessory.getService("Test 1").getCharacteristic(Characteristic.TargetPosition)
     .on('set', function(value, callback) {
-      platform.log(newAccessory.displayName, "Light -> " + value);
-      platform.log(this.orno)
-      // this.orno.switchOn("0x02EBE746/16");
-      callback();
+      currentPosition = newAccessory.context.lastTargetValue;
+      if (currentPosition == -1) {
+        currentPosition = service.getCharacteristic(Characteristic.CurrentPosition).value
+      }
+      newAccessory.context.lastTargetValue = value;
+      platform.log('Got command to transition from ' + currentPosition + ' to ' + value)
+      platform.log('Current PositionState is ' + service.getCharacteristic(Characteristic.PositionState).value)
+      platform.log('Current Position is ' + service.getCharacteristic(Characteristic.CurrentPosition).value)
+      // platform.log('Current TargetPosition is '+service.getCharacteristic(Characteristic.TargetPosition).value)
+
+      distance = currentPosition - value;
+      delay = Math.abs(distance) / 100 * newAccessory.context.upDownTime;
+      if (currentPosition < value) { // should open
+        platform.log('Going up')
+        newAccessory.context.commandQueue.push({
+          "dir": "up",
+          "value": value,
+          "delay": delay
+        })
+      } else { // should close
+        platform.log('Going down')
+        newAccessory.context.commandQueue.push({
+          "dir": "down",
+          "value": value,
+          "delay": delay
+        })
+      }
+      if (service.getCharacteristic(Characteristic.PositionState).value == 2) {
+        platform.log('Calling processTimeouts')
+        setImmediate(processTimeouts)
+      }
+      return callback()
     });
+
+
+  // newAccessory.addService(Service.WindowCovering, "Test 1")
+  //   .getCharacteristic(Characteristic.TargetPosition)
+  //   .on('set', function(value, callback) {
+  //     platform.log(newAccessory.displayName, "Light -> " + value);
+  //     callback();
+  //   });
+
 
   this.accessories.push(newAccessory);
   this.api.registerPlatformAccessories("homebridge-rfxtrx433", "RFXtrx433", [newAccessory]);
